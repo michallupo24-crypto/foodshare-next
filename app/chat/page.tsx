@@ -14,6 +14,7 @@ type Message = {
   body: string;
   message_type: string;
   created_at: string;
+  item_id: number | null;
 };
 
 function ChatInner() {
@@ -21,7 +22,14 @@ function ChatInner() {
   const router = useRouter();
   const { userId, loading } = useAuth();
   const otherId = params.get("with") ?? "";
-  const itemId = params.get("item") ?? "";
+  const urlItemId = params.get("item") ?? "";
+  // the URL only carries ?item= when you arrive via an item's own card - if
+  // you reply from the plain conversation list (Messages.tsx has no item
+  // context to link with) we fall back to the most recent item actually
+  // discussed in this thread, so both sides of a conversation always see
+  // the same reviewing/address-sharing/pickup-coordination context instead
+  // of only whoever happened to click through from the item card
+  const [itemId, setItemId] = useState(urlItemId);
 
   const [otherUsername, setOtherUsername] = useState("");
   const [itemName, setItemName] = useState("");
@@ -59,9 +67,15 @@ function ChatInner() {
         `and(sender_id.eq.${userId},receiver_id.eq.${otherId}),and(sender_id.eq.${otherId},receiver_id.eq.${userId})`
       )
       .order("created_at", { ascending: true });
-    setMessages((data ?? []) as Message[]);
+    const rows = (data ?? []) as Message[];
+    setMessages(rows);
     await supabase.rpc("mark_conversation_read", { other_user: otherId });
-  }, [userId, otherId]);
+
+    if (!urlItemId) {
+      const lastWithItem = [...rows].reverse().find((m) => m.item_id !== null);
+      if (lastWithItem) setItemId(String(lastWithItem.item_id));
+    }
+  }, [userId, otherId, urlItemId]);
 
   useEffect(() => {
     if (!userId || !otherId) return;
