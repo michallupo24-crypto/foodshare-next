@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import LocationPreviewMap from "@/components/LocationPreviewMap";
 
 const CITIES = ["Tel Aviv", "Jerusalem", "Haifa", "Beersheba"];
 const CITY_LABELS: Record<string, string> = {
@@ -108,6 +109,7 @@ export default function RegisterPage() {
           שיתוף מיקום לחישוב מרחק מדויק (לא חובה)
         </button>
         {locationStatus && <p className="text-sm text-[var(--ink)]/70">{locationStatus}</p>}
+        {location && <LocationPreviewMap lat={location.lat} lon={location.lon} />}
         <button disabled={busy} type="submit" className="bg-[var(--green)] text-[var(--paper)] rounded-full px-4 py-2 mt-2">
           {busy ? "נרשמת/ה..." : "הירשם"}
         </button>

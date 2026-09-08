@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
+import LocationPreviewMap from "@/components/LocationPreviewMap";
 
 const CITIES = ["Tel Aviv", "Jerusalem", "Haifa", "Beersheba"];
 const CITY_LABELS: Record<string, string> = {
@@ -153,6 +154,7 @@ export default function AddItemPage() {
         </button>
         {gpsStatus && <p className="text-sm text-[var(--ink)]/70">{gpsStatus}</p>}
         {gps && <p className="text-sm text-[var(--green)]">שיתפת מיקום GPS - אין חובה למלא גם כתובת בטקסט.</p>}
+        {gps && <LocationPreviewMap lat={gps.lat} lon={gps.lon} />}
 
         <div className="bg-[var(--bg)] rounded-xl p-3 border border-[var(--ink-border)]">
           <div className="font-semibold">

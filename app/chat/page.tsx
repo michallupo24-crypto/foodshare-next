@@ -171,7 +171,7 @@ function ChatInner() {
     setError("");
     setMessages((prev) => [
       ...prev,
-      { id: Math.random(), sender_id: userId!, receiver_id: otherId, body, message_type: "text", created_at: new Date().toISOString() },
+      { id: Math.random(), sender_id: userId!, receiver_id: otherId, body, message_type: "text", created_at: new Date().toISOString(), item_id: itemId ? Number(itemId) : null },
     ]);
     setInput("");
   }
@@ -193,7 +193,7 @@ function ChatInner() {
     setError("");
     setMessages((prev) => [
       ...prev,
-      { id: Math.random(), sender_id: userId!, receiver_id: otherId, body, message_type: "address", created_at: new Date().toISOString() },
+      { id: Math.random(), sender_id: userId!, receiver_id: otherId, body, message_type: "address", created_at: new Date().toISOString(), item_id: itemId ? Number(itemId) : null },
     ]);
   }
 
