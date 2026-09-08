@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import LocationPreviewMap from "@/components/LocationPreviewMap";
 
@@ -26,6 +27,7 @@ export default function RegisterPage() {
   const [address, setAddress] = useState("");
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [locationStatus, setLocationStatus] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -118,6 +120,15 @@ export default function RegisterPage() {
         </button>
         {locationStatus && <p className="text-sm text-[var(--ink)]/70">{locationStatus}</p>}
         {location && <LocationPreviewMap lat={location.lat} lon={location.lon} />}
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            required
+            type="checkbox"
+            checked={agreedToTerms}
+            onChange={(e) => setAgreedToTerms(e.target.checked)}
+          />
+          קראתי ואני מסכים/ה ל<Link href="/terms" target="_blank" className="text-[var(--green)] underline">תנאי השימוש</Link>
+        </label>
         <button disabled={busy} type="submit" className="bg-[var(--green)] text-[var(--paper)] rounded-full px-4 py-2 mt-2">
           {busy ? "נרשמת/ה..." : "הירשם"}
         </button>

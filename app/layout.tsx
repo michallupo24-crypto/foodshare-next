@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Assistant, Frank_Ruhl_Libre } from "next/font/google";
 import "./globals.css";
+import Link from "next/link";
 import { AuthProvider } from "@/lib/AuthContext";
 import Nav from "@/components/Nav";
 
@@ -31,6 +32,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <AuthProvider>
           <Nav />
           <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-6">{children}</main>
+          <footer className="text-center text-xs text-[var(--ink)]/50 py-4">
+            <Link href="/terms" className="underline">תנאי שימוש</Link>
+          </footer>
         </AuthProvider>
       </body>
     </html>
