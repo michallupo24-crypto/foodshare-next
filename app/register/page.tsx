@@ -23,6 +23,7 @@ export default function RegisterPage() {
   const [birthYear, setBirthYear] = useState("");
   const [gender, setGender] = useState("male");
   const [city, setCity] = useState("Tel Aviv");
+  const [address, setAddress] = useState("");
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [locationStatus, setLocationStatus] = useState("");
   const [error, setError] = useState("");
@@ -64,6 +65,7 @@ export default function RegisterPage() {
       birth_year: Number(birthYear),
       gender,
       city,
+      address: address.trim() || null,
     };
     if (location) {
       profile.lat = location.lat;
@@ -105,6 +107,12 @@ export default function RegisterPage() {
             <option key={c} value={c}>{CITY_LABELS[c]}</option>
           ))}
         </select>
+        <input
+          placeholder="כתובת (רחוב, שכונה...) - לא חובה"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          className="border rounded-lg px-3 py-2"
+        />
         <button type="button" onClick={shareLocation} className="border rounded-full px-4 py-2 text-[var(--green)]">
           שיתוף מיקום לחישוב מרחק מדויק (לא חובה)
         </button>
