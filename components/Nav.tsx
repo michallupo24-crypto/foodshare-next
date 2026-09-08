@@ -26,7 +26,9 @@ export default function Nav() {
       {userId && profile?.is_admin && <Link href="/admin" onClick={() => setMenuOpen(false)}>מודרציה</Link>}
       {userId ? (
         <>
-          <span className="text-[var(--green)]">שלום, {profile?.username ?? "..."}</span>
+          <Link href="/account" className="text-[var(--green)]" onClick={() => setMenuOpen(false)}>
+            שלום, {profile?.username ?? "..."}
+          </Link>
           <button onClick={handleLogout} className="text-[var(--rust)] text-right">
             יציאה
           </button>

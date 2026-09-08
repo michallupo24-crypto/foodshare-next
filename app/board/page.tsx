@@ -38,6 +38,29 @@ function BoardInner() {
   const [cityFilter, setCityFilter] = useState(searchParams.get("city") ?? "");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [loading, setLoading] = useState(true);
+  // guests aren't signed in, so there's no stored profile city/GPS to
+  // measure from - let them pick a city just for this browser (kept in
+  // localStorage, never sent anywhere) so they still get an approximate
+  // distance instead of always seeing "מרחק לא ידוע"
+  const [guestCity, setGuestCity] = useState("");
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("foodshare_guest_city");
+      if (saved) setGuestCity(saved);
+    } catch {
+      // localStorage unavailable (private browsing etc.) - just skip the guest-distance convenience
+    }
+  }, []);
+
+  function handleGuestCityChange(value: string) {
+    setGuestCity(value);
+    try {
+      localStorage.setItem("foodshare_guest_city", value);
+    } catch {
+      // ignore - see above
+    }
+  }
 
   const [message, setMessage] = useState("");
 
@@ -91,13 +114,14 @@ function BoardInner() {
       if (real !== null) {
         text = Math.round(real * 10) / 10 + ' ק"מ (מדויק)';
       } else {
-        const cd = profile ? cityDistanceKm(profile.city, row.pickup_city) : null;
+        const viewerCity = profile ? profile.city : guestCity;
+        const cd = viewerCity ? cityDistanceKm(viewerCity, row.pickup_city) : null;
         text = cd !== null ? Math.round(cd) + ' ק"מ' : "מרחק לא ידוע";
       }
       distMap[row.id] = text;
     }
     setDistances(distMap);
-  }, [cityFilter, categoryFilter, userId, profile]);
+  }, [cityFilter, categoryFilter, userId, profile, guestCity]);
 
   useEffect(() => {
     load();
@@ -109,6 +133,25 @@ function BoardInner() {
       <p className="text-sm text-[var(--ink)]/70 mb-4">
         מטעמי פרטיות מוצגת כאן רק כתובת חלקית ומרחק משוער. הכתובת המדויקת נמסרת ע&quot;י המפרסם/ת דרך הצ&apos;אט.
       </p>
+
+      {!userId && (
+        <div className="flex items-center gap-2 flex-wrap mb-4 text-sm">
+          <label htmlFor="guestCity" className="text-[var(--ink)]/70">
+            לחישוב מרחק משוער, באיזו עיר את/ה?
+          </label>
+          <select
+            id="guestCity"
+            value={guestCity}
+            onChange={(e) => handleGuestCityChange(e.target.value)}
+            className="border rounded-lg px-3 py-1.5"
+          >
+            <option value="">בחרו עיר</option>
+            {CITIES.map((c) => (
+              <option key={c} value={c}>{CITY_LABELS[c]}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="flex gap-3 flex-wrap mb-6 bg-[var(--paper)] p-4 rounded-2xl border border-[var(--ink-border)]">
         <select value={cityFilter} onChange={(e) => setCityFilter(e.target.value)} className="border rounded-lg px-3 py-2">
