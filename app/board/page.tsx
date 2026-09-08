@@ -81,7 +81,7 @@ function BoardInner() {
 
     const distMap: Record<number, string> = {};
     for (const row of rows) {
-      let text = "מרחק לא ידוע";
+      let text = userId ? "מרחק לא ידוע" : "מרחק - תלוי בהרשמה";
       let real: number | null = null;
       if (userId) {
         const { data: rpcData } = await supabase.rpc("item_distance_km", { target_item: row.id });
