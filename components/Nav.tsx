@@ -21,9 +21,9 @@ export default function Nav() {
           FoodShare
         </Link>
         <nav className="flex items-center gap-4 text-sm flex-wrap">
-          <Link href="/board">עיון</Link>
+          <Link href="/board">לוח מזון</Link>
           <Link href="/map">מפה</Link>
-          {userId && <Link href="/add-item">לשתף</Link>}
+          {userId && <Link href="/add-item">שתף מוצר</Link>}
           {userId && <Link href="/messages">הודעות</Link>}
           {userId && profile?.is_admin && <Link href="/admin">מודרציה</Link>}
           {userId ? (
