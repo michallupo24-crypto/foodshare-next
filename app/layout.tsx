@@ -32,6 +32,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col bg-[var(--bg)] text-[var(--ink)]">
         {/* eslint-disable-next-line react/no-danger */}
         <div style={{ display: "none" }} dangerouslySetInnerHTML={{ __html: "<!-- MRL -->" }} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/monogram.svg" alt="" aria-hidden="true" style={{ display: "none" }} />
         <AuthProvider>
           <Nav />
           <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-6">{children}</main>
