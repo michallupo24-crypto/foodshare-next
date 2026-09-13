@@ -13,7 +13,7 @@ export default function HiddenMonogram() {
       style={{
         position: "fixed",
         bottom: 12,
-        insetInlineEnd: 12,
+        right: 12,
         width: 64,
         height: 64,
         color: "var(--bg)",
