@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Assistant, Karantina } from "next/font/google";
+import { Amatic_SC, Assistant, Karantina } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { AuthProvider } from "@/lib/AuthContext";
@@ -17,6 +17,12 @@ const karantina = Karantina({
   weight: ["400", "700"],
 });
 
+const amatic = Amatic_SC({
+  variable: "--font-amatic",
+  subsets: ["hebrew", "latin"],
+  weight: ["700"],
+});
+
 export const metadata: Metadata = {
   title: "FoodShare - שיתוף מזון",
   description: "פלטפורמה קהילתית לשיתוף מזון",
@@ -28,7 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="he"
       dir="rtl"
-      className={`${assistant.variable} ${karantina.variable} h-full antialiased`}
+      className={`${assistant.variable} ${karantina.variable} ${amatic.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-sand text-ink">
         <HiddenMonogram />
