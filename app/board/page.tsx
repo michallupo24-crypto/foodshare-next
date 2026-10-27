@@ -6,15 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import { cityDistanceKm, partialLocation } from "@/lib/geo";
-
-const CITIES = ["Tel Aviv", "Jerusalem", "Haifa", "Beersheba"];
-const CITY_LABELS: Record<string, string> = {
-  "Tel Aviv": "תל אביב",
-  Jerusalem: "ירושלים",
-  Haifa: "חיפה",
-  Beersheba: "באר שבע",
-};
-const CATEGORIES = ["פחמימות", "ירקות ופירות", "מוצרי חלב", "שימורים ויבשים", "ממתקים", "אחר"];
+import { CITIES, CITY_LABELS, CATEGORIES, CATEGORY_COLORS, tilt } from "@/lib/constants";
 
 type ItemRow = {
   id: number;
@@ -103,48 +95,80 @@ function BoardInner() {
   }, [load]);
 
   return (
-    <div>
-      <h2 className="text-3xl mb-2">זמין עכשיו</h2>
-      <p className="text-sm text-[var(--ink)]/70 mb-4">
-        מטעמי פרטיות מוצגת כאן רק כתובת חלקית ומרחק משוער. הכתובת המדויקת נמסרת ע&quot;י המפרסם/ת דרך הצ&apos;אט.
-      </p>
-
-      {!userId && (
-        <p className="text-sm text-[var(--ink)]/70 mb-4">
-          <Link href="/register" className="text-[var(--green)] underline">הירשמו</Link> כדי לראות מרחק עד המוצרים.
+    <div className="page flex flex-col gap-7">
+      <div className="page-head gap-3.5">
+        <div className="flex justify-between items-baseline gap-3 flex-wrap">
+          <div className="eyebrow">זמין עכשיו</div>
+          <Link href="/map" className="text-sm font-bold no-underline">לתצוגת מפה ←</Link>
+        </div>
+        <h1 className="display">
+          {loading ? (
+            "טוען מוצרים..."
+          ) : (
+            <>
+              <span className="text-rust">{items.length}</span> מוצרים מחכים לאיסוף
+            </>
+          )}
+        </h1>
+        <p className="lede max-w-[640px] m-0">
+          מטעמי פרטיות מוצגת כאן רק כתובת חלקית ומרחק משוער. הכתובת המדויקת נמסרת ע&quot;י המפרסם/ת דרך הצ&apos;אט.
         </p>
-      )}
+        {!userId && (
+          <p className="lede m-0">
+            <Link href="/register" className="font-bold underline">הירשמו</Link> כדי לראות מרחק עד המוצרים.
+          </p>
+        )}
 
-      <div className="flex gap-3 flex-wrap mb-6 bg-[var(--paper)] p-4 rounded-2xl border border-[var(--ink-border)]">
-        <select value={cityFilter} onChange={(e) => setCityFilter(e.target.value)} className="border rounded-lg px-3 py-2">
-          <option value="">כל הערים</option>
-          {CITIES.map((c) => (
-            <option key={c} value={c}>{CITY_LABELS[c]}</option>
-          ))}
-        </select>
-        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="border rounded-lg px-3 py-2">
-          <option value="">כל הקטגוריות</option>
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
+        <div className="flex flex-col gap-2 mt-1.5">
+          <div className="flex flex-wrap gap-1.5">
+            <button type="button" className="chip" aria-pressed={!cityFilter} onClick={() => setCityFilter("")}>
+              כל הערים
+            </button>
+            {CITIES.map((c) => (
+              <button key={c} type="button" className="chip" aria-pressed={cityFilter === c} onClick={() => setCityFilter(c)}>
+                {CITY_LABELS[c]}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <button type="button" className="chip" aria-pressed={!categoryFilter} onClick={() => setCategoryFilter("")}>
+              כל הקטגוריות
+            </button>
+            {CATEGORIES.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className="chip"
+                aria-pressed={categoryFilter === c}
+                onClick={() => setCategoryFilter(c)}
+              >
+                <i className="dot" style={{ background: CATEGORY_COLORS[c] }} />
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {message && <p className="text-sm text-[var(--green)] mb-3">{message}</p>}
+      {message && <p className="text-sm text-green font-semibold m-0">{message}</p>}
 
-      {loading ? (
-        <p>טוען...</p>
-      ) : items.length === 0 ? (
-        <p>לא נמצאו מוצרים.</p>
+      {!loading && items.length === 0 ? (
+        <p className="font-bold text-lg text-ink/50 py-6 m-0">לא נמצאו מוצרים.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {items.map((item) => {
+        <div className="grid gap-x-[22px] gap-y-7 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
+          {items.map((item, index) => {
             const daysLeft = Math.ceil(
               (new Date(item.expiry_date).getTime() - new Date().setHours(0, 0, 0, 0)) / 86400000
             );
+            const urgent = daysLeft <= 1;
             return (
-              <div key={item.id} className="bg-[var(--paper)] rounded-2xl border border-[var(--ink-border)] overflow-hidden flex flex-col">
-                <div className="h-32 bg-black/5 flex items-center justify-center text-sm text-[var(--ink)]/50">
+              <div
+                key={item.id}
+                className="card tilted pt-[26px] px-3.5 pb-3.5 flex flex-col gap-3"
+                style={{ transform: tilt(index) }}
+              >
+                <i className="pin top-2.5 right-1/2 -mr-1" />
+                <div className="h-[120px] bg-sand border border-ink/25 rounded-sm flex items-center justify-center font-bold text-sm text-ink/50 overflow-hidden">
                   {item.photo_url && !item.photo_disabled ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={item.photo_url} alt="" className="w-full h-full object-cover" />
@@ -152,36 +176,42 @@ function BoardInner() {
                     "אין תמונה למוצר זה"
                   )}
                 </div>
-                <div className="p-4 flex-1 flex flex-col gap-2">
-                  <div className="flex justify-between items-start">
-                    <span className="font-semibold">{item.item_name}</span>
-                    <span className={`text-xs rounded-full px-2 py-1 ${daysLeft <= 1 ? "bg-[var(--rust)] text-[var(--paper)]" : "bg-[var(--green-chip)] text-[var(--green)]"}`}>
-                      {daysLeft <= 0 ? "היום" : daysLeft === 1 ? "מחר" : `נותרו ${daysLeft} ימים`}
+                <div className="flex justify-between items-start gap-2">
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <span className="font-display font-bold text-[32px] leading-none">{item.item_name}</span>
+                    <span className="flex items-center gap-1.5 text-[13px] text-ink/60">
+                      <i className="dot border border-ink" style={{ background: CATEGORY_COLORS[item.category] ?? "transparent" }} />
+                      {item.category}
                     </span>
                   </div>
-                  <div className="text-sm text-[var(--ink)]/70">
-                    {item.quantity} · {item.pickup_city} · {partialLocation(item.pickup_location)} · {distances[item.id] ?? "..."}
-                  </div>
-                  <div className="mt-auto flex justify-between items-center pt-2 flex-wrap gap-1">
-                    <Link href={`/profile/${item.user_id}`} className="text-sm">
-                      {item.profiles?.username}
-                    </Link>
-                    <div className="flex gap-2 text-sm">
-                      {userId && userId !== item.user_id && (
-                        <Link href={`/chat?with=${item.user_id}&item=${item.id}`} className="text-[var(--green)]">
-                          הודעה
-                        </Link>
-                      )}
-                      {userId && (userId === item.user_id || profile?.is_admin) && (
-                        <>
-                          <Link href={`/edit-item/${item.id}`}>עריכה</Link>
-                          <button onClick={() => handleDelete(item.id)} className="text-[var(--rust)]">מחיקה</button>
-                        </>
-                      )}
-                      {userId && userId !== item.user_id && item.photo_url && (
-                        <button onClick={() => handleReport(item.id)} className="text-[var(--rust)]">דווח על תמונה</button>
-                      )}
-                    </div>
+                  <span
+                    className={`text-xs font-bold rounded px-2.5 py-1 whitespace-nowrap ${urgent ? "bg-rust text-paper" : "bg-[var(--green-chip)] text-green"}`}
+                  >
+                    {daysLeft <= 0 ? "היום" : daysLeft === 1 ? "מחר" : `נותרו ${daysLeft} ימים`}
+                  </span>
+                </div>
+                <div className="text-sm text-ink/70">
+                  {item.quantity} · {CITY_LABELS[item.pickup_city] ?? item.pickup_city} · {partialLocation(item.pickup_location)} · {distances[item.id] ?? "..."}
+                </div>
+                <div className="mt-auto dashed-top pt-2.5 flex justify-between items-center flex-wrap gap-2 text-sm">
+                  <Link href={`/profile/${item.user_id}`} className="font-bold text-ink no-underline">
+                    {item.profiles?.username}
+                  </Link>
+                  <div className="flex gap-3 flex-wrap">
+                    {userId && userId !== item.user_id && (
+                      <Link href={`/chat?with=${item.user_id}&item=${item.id}`} className="font-bold no-underline">
+                        הודעה ←
+                      </Link>
+                    )}
+                    {userId && (userId === item.user_id || profile?.is_admin) && (
+                      <>
+                        <Link href={`/edit-item/${item.id}`} className="font-semibold text-ink no-underline">עריכה</Link>
+                        <button onClick={() => handleDelete(item.id)} className="text-rust font-semibold cursor-pointer">מחיקה</button>
+                      </>
+                    )}
+                    {userId && userId !== item.user_id && item.photo_url && (
+                      <button onClick={() => handleReport(item.id)} className="text-rust font-semibold cursor-pointer">דווח על תמונה</button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -195,7 +225,7 @@ function BoardInner() {
 
 export default function BoardPage() {
   return (
-    <Suspense fallback={<p>טוען...</p>}>
+    <Suspense fallback={<p className="page">טוען...</p>}>
       <BoardInner />
     </Suspense>
   );

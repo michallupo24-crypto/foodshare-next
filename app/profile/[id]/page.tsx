@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { CITY_LABELS, tilt } from "@/lib/constants";
 
 type ReviewSummary = {
   reviewee_id: string;
@@ -54,38 +55,43 @@ export default function PublicProfilePage() {
   }, [id]);
 
   return (
-    <div className="max-w-md mx-auto flex flex-col gap-4">
-      <div className="bg-[var(--paper)] p-6 rounded-2xl border border-[var(--ink-border)]">
-        <h2 className="text-2xl mb-2">{username}</h2>
-        <p className="text-[var(--ink)]/70 mb-1">{city}</p>
-        {trustPoints !== null && (
-          <p className="text-sm text-[var(--green)] mb-3">{trustPoints} נקודות אמון</p>
-        )}
-        {summary ? (
-          <p>
-            ⭐ {summary.average_rating} מתוך {summary.review_count} ביקורות
-          </p>
-        ) : (
-          <p className="text-[var(--ink)]/70">אין עדיין ביקורות.</p>
-        )}
+    <div className="page page-narrow flex flex-col gap-7">
+      <div className="page-head">
+        <div className="eyebrow">פרופיל{city && ` · ${CITY_LABELS[city] ?? city}`}</div>
+        <h1 className="display text-[72px]">{username}</h1>
+        <div className="flex gap-7 flex-wrap mt-2">
+          {summary ? (
+            <Stat value={summary.average_rating} label={`ממוצע מתוך ${summary.review_count} ביקורות`} />
+          ) : (
+            <p className="lede m-0 self-end">אין עדיין ביקורות.</p>
+          )}
+          {trustPoints !== null && <Stat value={trustPoints} label="נקודות אמון" />}
+        </div>
       </div>
 
       {reviews.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <span className="text-sm text-[var(--ink)]/50 tracking-wide">ביקורות שהתקבלו</span>
-          {reviews.map((r) => (
-            <div key={r.id} className="bg-[var(--paper)] border border-[var(--ink-border)] rounded-xl p-3">
+        <div className="flex flex-col gap-3.5">
+          <div className="eyebrow text-ink/55">ביקורות שהתקבלו</div>
+          {reviews.map((r, index) => (
+            <div key={r.id} className="card px-[18px] py-4 flex flex-col gap-1.5" style={{ transform: tilt(index, 0.5) }}>
               <div className="flex justify-between items-center">
-                <span className="text-[var(--green)]">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
-                <span className="text-xs text-[var(--ink)]/40">
-                  {new Date(r.created_at).toLocaleDateString("he-IL")}
-                </span>
+                <span className="text-green text-[17px] tracking-[2px]">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+                <span className="text-xs text-ink/45">{new Date(r.created_at).toLocaleDateString("he-IL")}</span>
               </div>
-              {r.comment && <p className="text-sm mt-1 text-[var(--ink)]/70">{r.comment}</p>}
+              <p className="text-[15px] text-ink/75 m-0">{r.comment || "—"}</p>
             </div>
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function Stat({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="flex flex-col">
+      <span className="font-display font-bold text-[44px] leading-none text-green">{value}</span>
+      <span className="text-[13px] text-ink/60">{label}</span>
     </div>
   );
 }

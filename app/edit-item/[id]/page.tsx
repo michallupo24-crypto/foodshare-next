@@ -1,18 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
-
-const CITIES = ["Tel Aviv", "Jerusalem", "Haifa", "Beersheba"];
-const CITY_LABELS: Record<string, string> = {
-  "Tel Aviv": "תל אביב",
-  Jerusalem: "ירושלים",
-  Haifa: "חיפה",
-  Beersheba: "באר שבע",
-};
-const CATEGORIES = ["פחמימות", "ירקות ופירות", "מוצרי חלב", "שימורים ויבשים", "ממתקים", "אחר"];
+import { CITIES, CITY_LABELS, CATEGORIES } from "@/lib/constants";
+import CategoryPicker from "@/components/CategoryPicker";
 
 export default function EditItemPage() {
   const params = useParams();
@@ -21,6 +15,7 @@ export default function EditItemPage() {
   const { userId, profile, loading } = useAuth();
 
   const [itemName, setItemName] = useState("");
+  const [originalName, setOriginalName] = useState("");
   const [expiry, setExpiry] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [category, setCategory] = useState(CATEGORIES[0]);
@@ -43,6 +38,7 @@ export default function EditItemPage() {
       .then(({ data }) => {
         if (!data) return;
         setItemName(data.item_name);
+        setOriginalName(data.item_name);
         setExpiry(data.expiry_date);
         setQuantity(String(data.quantity));
         setCategory(data.category);
@@ -76,34 +72,55 @@ export default function EditItemPage() {
     setTimeout(() => router.push("/board"), 800);
   }
 
-  if (!ready) return <p>טוען...</p>;
+  if (!ready) return <p className="page">טוען...</p>;
 
   return (
-    <div className="max-w-md mx-auto bg-[var(--paper)] p-6 rounded-2xl border border-[var(--ink-border)]">
-      <h2 className="text-2xl mb-4">עריכת מוצר</h2>
-      {message && (
-        <p className={isError ? "text-[var(--rust)] mb-3" : "text-[var(--green)] mb-3"}>{message}</p>
-      )}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <input required value={itemName} onChange={(e) => setItemName(e.target.value)} className="border rounded-lg px-3 py-2" />
-        <input required type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} className="border rounded-lg px-3 py-2" />
-        <input required type="number" min={1} value={quantity} onChange={(e) => setQuantity(e.target.value)} className="border rounded-lg px-3 py-2" />
-        <select value={category} onChange={(e) => setCategory(e.target.value)} className="border rounded-lg px-3 py-2">
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-        <select value={city} onChange={(e) => setCity(e.target.value)} className="border rounded-lg px-3 py-2">
-          {CITIES.map((c) => (
-            <option key={c} value={c}>{CITY_LABELS[c]}</option>
-          ))}
-        </select>
-        <input value={location} onChange={(e) => setLocation(e.target.value)} className="border rounded-lg px-3 py-2" placeholder="כתובת / מיקום" />
-        <button type="submit" className="bg-[var(--green)] text-[var(--paper)] rounded-full px-4 py-2 mt-2">
-          שמירה
+    <div className="page split">
+      <div className="flex flex-col gap-3.5 pt-2">
+        <div className="eyebrow">
+          {originalName} · {CITY_LABELS[city] ?? city}
+        </div>
+        <h1 className="display">עריכת מוצר</h1>
+        <p className="lede m-0">הכתובת המדויקת לא מוצגת בלוח. היא נשלחת רק למי שמתאם/ת איתך איסוף בצ&apos;אט.</p>
+        {profile?.is_admin && <p className="text-sm font-bold text-ink/50 m-0">(עריכה כמנהל/ת)</p>}
+      </div>
+
+      <form onSubmit={handleSubmit} className="card form-card">
+        <i className="pin" />
+        {message && <p className={`font-bold m-0 ${isError ? "text-rust" : "text-green"}`}>{message}</p>}
+        <label className="field">
+          שם המוצר
+          <input required value={itemName} onChange={(e) => setItemName(e.target.value)} className="input" />
+        </label>
+        <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-3">
+          <label className="field">
+            תאריך תפוגה
+            <input required type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} className="input" />
+          </label>
+          <label className="field">
+            כמות
+            <input required type="number" min={1} value={quantity} onChange={(e) => setQuantity(e.target.value)} className="input" />
+          </label>
+        </div>
+        <CategoryPicker value={category} onChange={setCategory} />
+        <label className="field">
+          עיר
+          <select value={city} onChange={(e) => setCity(e.target.value)} className="input">
+            {CITIES.map((c) => (
+              <option key={c} value={c}>{CITY_LABELS[c]}</option>
+            ))}
+          </select>
+        </label>
+        <label className="field">
+          כתובת / מיקום מדויק
+          <input value={location} onChange={(e) => setLocation(e.target.value)} className="input" placeholder="רחוב, מספר, שכונה" />
+        </label>
+        <button type="submit" className="btn-primary mt-2">
+          <span>שמירת שינויים</span>
+          <span>←</span>
         </button>
+        <Link href="/board" className="self-center text-sm text-ink/60 no-underline">ביטול וחזרה ללוח</Link>
       </form>
-      {profile?.is_admin && <p className="text-xs text-[var(--ink)]/50 mt-2">(עריכה כמנהל/ת)</p>}
     </div>
   );
 }

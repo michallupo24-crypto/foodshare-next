@@ -2,19 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { CITY_LABELS } from "@/lib/constants";
 
 const CITY_COORDS: Record<string, [number, number]> = {
   "Tel Aviv": [32.0853, 34.7818],
   Jerusalem: [31.7683, 35.2137],
   Haifa: [32.794, 34.9896],
   Beersheba: [31.253, 34.7915],
-};
-const CITY_LABELS: Record<string, string> = {
-  "Tel Aviv": "תל אביב",
-  Jerusalem: "ירושלים",
-  Haifa: "חיפה",
-  Beersheba: "באר שבע",
 };
 
 export default function MapPage() {
@@ -70,9 +66,10 @@ export default function MapPage() {
         const radius = 8 + count * 4;
         const marker = L.circleMarker([lat, lon], {
           radius,
-          color: "#3e6b4a",
-          fillColor: "#3e6b4a",
-          fillOpacity: 0.5,
+          color: "#2a2a20",
+          weight: 1.5,
+          fillColor: count > 0 ? "#c9552b" : "#3e6b4a",
+          fillOpacity: 0.55,
         }).addTo(map);
         marker.bindPopup(
           `<strong>${CITY_LABELS[city]}</strong><br/>${count} מוצרים זמינים<br/><a href="/board?city=${encodeURIComponent(city)}">לצפייה בלוח</a>`
@@ -82,10 +79,21 @@ export default function MapPage() {
     });
   }, [counts]);
 
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+
   return (
-    <div>
-      <h2 className="text-3xl mb-4">מפת זמינות</h2>
-      <div ref={mapContainerRef} className="h-[500px] rounded-2xl border border-[var(--ink-border)]" />
+    <div className="page flex flex-col gap-7">
+      <div className="page-head">
+        <div className="flex justify-between items-baseline gap-3 flex-wrap">
+          <div className="eyebrow">מפת זמינות</div>
+          <Link href="/board" className="text-sm font-bold no-underline">לתצוגת לוח ←</Link>
+        </div>
+        <h1 className="display">
+          <span className="text-rust">{total}</span> מוצרים לפי עיר
+        </h1>
+        <p className="lede m-0">לחצו על עיגול כדי לראות כמה מוצרים זמינים בעיר ולעבור ללוח המסונן.</p>
+      </div>
+      <div ref={mapContainerRef} className="card h-[500px] z-0" />
     </div>
   );
 }

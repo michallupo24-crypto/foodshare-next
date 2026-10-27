@@ -5,15 +5,9 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import LocationPreviewMap from "@/components/LocationPreviewMap";
+import CategoryPicker from "@/components/CategoryPicker";
+import { CITIES, CITY_LABELS, CATEGORIES } from "@/lib/constants";
 
-const CITIES = ["Tel Aviv", "Jerusalem", "Haifa", "Beersheba"];
-const CITY_LABELS: Record<string, string> = {
-  "Tel Aviv": "תל אביב",
-  Jerusalem: "ירושלים",
-  Haifa: "חיפה",
-  Beersheba: "באר שבע",
-};
-const CATEGORIES = ["פחמימות", "ירקות ופירות", "מוצרי חלב", "שימורים ויבשים", "ממתקים", "אחר"];
 const MIN_REVIEWS_FOR_PHOTO = 2;
 
 export default function AddItemPage() {
@@ -123,61 +117,84 @@ export default function AddItemPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto bg-[var(--paper)] p-6 rounded-2xl border border-[var(--ink-border)]">
-      <h2 className="text-2xl mb-4">הוספת מוצר לשיתוף</h2>
-      {message && (
-        <p className={isError ? "text-[var(--rust)] mb-3" : "text-[var(--green)] mb-3"}>{message}</p>
-      )}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <input required placeholder="שם המוצר" value={itemName} onChange={(e) => setItemName(e.target.value)} className="border rounded-lg px-3 py-2" />
-        <input required type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} className="border rounded-lg px-3 py-2" />
-        <input required type="number" min={1} placeholder="כמות" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="border rounded-lg px-3 py-2" />
-        <select value={category} onChange={(e) => setCategory(e.target.value)} className="border rounded-lg px-3 py-2">
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-        <select value={city} onChange={(e) => setCity(e.target.value)} className="border rounded-lg px-3 py-2">
-          {CITIES.map((c) => (
-            <option key={c} value={c}>{CITY_LABELS[c]}</option>
-          ))}
-        </select>
-        <input
-          placeholder="כתובת / מיקום מדויק"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          required={!gps}
-          className="border rounded-lg px-3 py-2"
-        />
-        <button type="button" onClick={shareItemLocation} className="border rounded-full px-4 py-2 text-[var(--green)]">
-          שיתוף מיקום המוצר למרחק מדויק (לא חובה)
-        </button>
-        {gpsStatus && <p className="text-sm text-[var(--ink)]/70">{gpsStatus}</p>}
-        {gps && <p className="text-sm text-[var(--green)]">שיתפת מיקום GPS - אין חובה למלא גם כתובת בטקסט.</p>}
-        {gps && <LocationPreviewMap lat={gps.lat} lon={gps.lon} />}
+    <div className="page split">
+      <div className="flex flex-col gap-3.5 pt-2">
+        <div className="eyebrow">שתף מוצר</div>
+        <h1 className="display">הוספת מוצר לשיתוף</h1>
+        <p className="lede m-0">הכתובת המדויקת לא מוצגת בלוח. היא נשלחת רק למי שמתאם/ת איתך איסוף בצ&apos;אט.</p>
 
-        <div className="bg-[var(--bg)] rounded-xl p-3 border border-[var(--ink-border)]">
-          <div className="font-semibold">
-            {canUploadPhoto ? "תמונות נפתחו" : "תמונות ייפתחו אחרי 2 ביקורות"}
-          </div>
-          <div className="text-sm text-[var(--ink)]/70">
+        <div className="card mt-3 p-4 flex flex-col gap-1.5">
+          <div className="font-bold">{canUploadPhoto ? "תמונות נפתחו" : "תמונות ייפתחו אחרי 2 ביקורות"}</div>
+          <div className="text-sm text-ink/70 [text-wrap:pretty]">
             {canUploadPhoto
               ? "אפשר לצרף תמונה אחת למוצר. תמונה שדווחה מוסתרת עד שמנהל/ת בודק/ת אותה."
               : "אחרי שתי מסירות עם ביקורת נפתחת האפשרות לצרף תמונה למוצר."}
           </div>
-          <div className="text-sm mt-1">{Math.min(reviewCount, 2)} מתוך 2 ביקורות</div>
+          <div className="flex gap-1 mt-1.5">
+            {Array.from({ length: MIN_REVIEWS_FOR_PHOTO }, (_, i) => (
+              <i key={i} className={`flex-1 h-1.5 rounded-[3px] ${i < reviewCount ? "bg-green" : "bg-ink/30"}`} />
+            ))}
+          </div>
+          <div className="font-bold text-sm text-ink/70">
+            {Math.min(reviewCount, MIN_REVIEWS_FOR_PHOTO)} מתוך {MIN_REVIEWS_FOR_PHOTO} ביקורות
+          </div>
           {canUploadPhoto && (
             <input
               type="file"
               accept="image/*"
               onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
-              className="mt-2"
+              className="mt-2 text-sm"
             />
           )}
         </div>
+      </div>
 
-        <button disabled={busy} type="submit" className="bg-[var(--green)] text-[var(--paper)] rounded-full px-4 py-2 mt-2">
-          {busy ? "מפרסם..." : "פרסם מוצר"}
+      <form onSubmit={handleSubmit} className="card form-card">
+        <i className="pin" />
+        {message && <p className={`font-bold m-0 ${isError ? "text-rust" : "text-green"}`}>{message}</p>}
+        <label className="field">
+          שם המוצר
+          <input required placeholder="למשל: לחם מחמצת" value={itemName} onChange={(e) => setItemName(e.target.value)} className="input" />
+        </label>
+        <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-3">
+          <label className="field">
+            תאריך תפוגה
+            <input required type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} className="input" />
+          </label>
+          <label className="field">
+            כמות
+            <input required type="number" min={1} value={quantity} onChange={(e) => setQuantity(e.target.value)} className="input" />
+          </label>
+        </div>
+        <CategoryPicker value={category} onChange={setCategory} />
+        <label className="field">
+          עיר
+          <select value={city} onChange={(e) => setCity(e.target.value)} className="input">
+            {CITIES.map((c) => (
+              <option key={c} value={c}>{CITY_LABELS[c]}</option>
+            ))}
+          </select>
+        </label>
+        <label className="field">
+          כתובת / מיקום מדויק
+          <input
+            placeholder="רחוב, מספר, שכונה"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            required={!gps}
+            className="input"
+          />
+        </label>
+        <button type="button" onClick={shareItemLocation} className="btn-outline">
+          שיתוף מיקום המוצר למרחק מדויק (לא חובה)
+        </button>
+        {gpsStatus && <p className="text-sm text-ink/70 m-0">{gpsStatus}</p>}
+        {gps && <p className="text-sm text-green m-0">שיתפת מיקום GPS - אין חובה למלא גם כתובת בטקסט.</p>}
+        {gps && <LocationPreviewMap lat={gps.lat} lon={gps.lon} />}
+
+        <button disabled={busy} type="submit" className="btn-primary mt-2">
+          <span>{busy ? "מפרסם..." : "פרסם מוצר"}</span>
+          <span>←</span>
         </button>
       </form>
     </div>

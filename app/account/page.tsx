@@ -2,16 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
-
-const CITIES = ["Tel Aviv", "Jerusalem", "Haifa", "Beersheba"];
-const CITY_LABELS: Record<string, string> = {
-  "Tel Aviv": "תל אביב",
-  Jerusalem: "ירושלים",
-  Haifa: "חיפה",
-  Beersheba: "באר שבע",
-};
+import { CITIES, CITY_LABELS } from "@/lib/constants";
 
 type MyProfile = {
   username: string;
@@ -73,61 +67,89 @@ export default function AccountPage() {
     setMessage("הפרטים נשמרו בהצלחה!");
   }
 
-  if (!profile) return <p>טוען...</p>;
+  if (!profile) return <p className="page">טוען...</p>;
 
   return (
-    <div className="max-w-md mx-auto bg-[var(--paper)] p-6 rounded-2xl border border-[var(--ink-border)]">
-      <h2 className="text-2xl mb-1">הפרופיל שלי</h2>
-      <p className="text-sm text-[var(--ink)]/70 mb-4">{profile.trust_points} נקודות אמון</p>
-      {message && (
-        <p className={isError ? "text-[var(--rust)] mb-3" : "text-[var(--green)] mb-3"}>{message}</p>
-      )}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <input
-          required
-          placeholder="שם משתמש"
-          value={profile.username}
-          onChange={(e) => setProfile({ ...profile, username: e.target.value })}
-          className="border rounded-lg px-3 py-2"
-        />
-        <input
-          required
-          placeholder="שם פרטי"
-          value={profile.first_name}
-          onChange={(e) => setProfile({ ...profile, first_name: e.target.value })}
-          className="border rounded-lg px-3 py-2"
-        />
-        <input
-          required
-          placeholder="שם משפחה"
-          value={profile.last_name}
-          onChange={(e) => setProfile({ ...profile, last_name: e.target.value })}
-          className="border rounded-lg px-3 py-2"
-        />
-        <input
-          type="number"
-          placeholder="שנת לידה"
-          value={profile.birth_year ?? ""}
-          onChange={(e) => setProfile({ ...profile, birth_year: e.target.value ? Number(e.target.value) : null })}
-          className="border rounded-lg px-3 py-2"
-        />
-        <select
-          value={profile.city ?? "Tel Aviv"}
-          onChange={(e) => setProfile({ ...profile, city: e.target.value })}
-          className="border rounded-lg px-3 py-2"
-        >
-          {CITIES.map((c) => (
-            <option key={c} value={c}>{CITY_LABELS[c]}</option>
-          ))}
-        </select>
-        <input
-          placeholder="כתובת (רחוב, שכונה...) - לא חובה"
-          value={profile.address ?? ""}
-          onChange={(e) => setProfile({ ...profile, address: e.target.value })}
-          className="border rounded-lg px-3 py-2"
-        />
-        <button disabled={busy} type="submit" className="bg-[var(--green)] text-[var(--paper)] rounded-full px-4 py-2 mt-2">
-          {busy ? "שומר..." : "שמירה"}
+    <div className="page split">
+      <div className="flex flex-col gap-3.5 pt-2">
+        <div className="eyebrow">החשבון שלי</div>
+        <h1 className="display">הפרופיל שלי</h1>
+        <div className="flex items-baseline gap-2">
+          <span className="font-display font-bold text-[44px] leading-none text-green">{profile.trust_points}</span>
+          <span className="lede">נקודות אמון</span>
+        </div>
+        <Link href={`/profile/${userId}`} className="self-start text-sm font-bold no-underline">
+          איך אחרים רואים אותי ←
+        </Link>
+      </div>
+
+      <form onSubmit={handleSubmit} className="card form-card">
+        <i className="pin" />
+        {message && <p className={`font-bold m-0 ${isError ? "text-rust" : "text-green"}`}>{message}</p>}
+        <label className="field">
+          שם משתמש
+          <input
+            required
+            value={profile.username}
+            onChange={(e) => setProfile({ ...profile, username: e.target.value })}
+            className="input"
+          />
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="field">
+            שם פרטי
+            <input
+              required
+              value={profile.first_name}
+              onChange={(e) => setProfile({ ...profile, first_name: e.target.value })}
+              className="input"
+            />
+          </label>
+          <label className="field">
+            שם משפחה
+            <input
+              required
+              value={profile.last_name}
+              onChange={(e) => setProfile({ ...profile, last_name: e.target.value })}
+              className="input"
+            />
+          </label>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="field">
+            שנת לידה
+            <input
+              type="number"
+              value={profile.birth_year ?? ""}
+              onChange={(e) => setProfile({ ...profile, birth_year: e.target.value ? Number(e.target.value) : null })}
+              className="input"
+            />
+          </label>
+          <label className="field">
+            עיר
+            <select
+              value={profile.city ?? "Tel Aviv"}
+              onChange={(e) => setProfile({ ...profile, city: e.target.value })}
+              className="input"
+            >
+              {CITIES.map((c) => (
+                <option key={c} value={c}>{CITY_LABELS[c]}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <label className="field">
+          כתובת
+          <input
+            placeholder="כתובת (רחוב, שכונה...) - לא חובה"
+            value={profile.address ?? ""}
+            onChange={(e) => setProfile({ ...profile, address: e.target.value })}
+            className="input"
+          />
+        </label>
+        <button disabled={busy} type="submit" className="btn-primary mt-2">
+          <span>{busy ? "שומר..." : "שמירה"}</span>
+          <span>←</span>
         </button>
       </form>
     </div>
