@@ -1,4 +1,4 @@
-const CITY_COORDS: Record<string, [number, number]> = {
+export const CITY_COORDS: Record<string, [number, number]> = {
   "Tel Aviv": [32.0853, 34.7818],
   Jerusalem: [31.7683, 35.2137],
   Haifa: [32.794, 34.9896],

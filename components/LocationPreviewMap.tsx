@@ -41,5 +41,5 @@ export default function LocationPreviewMap({ lat, lon }: { lat: number; lon: num
     []
   );
 
-  return <div ref={containerRef} className="h-40 rounded-xl border border-[var(--ink-border)] mt-1" />;
+  return <div ref={containerRef} className="h-40 rounded border-[1.3px] border-ink mt-1 z-0" />;
 }

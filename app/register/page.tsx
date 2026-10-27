@@ -5,14 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import LocationPreviewMap from "@/components/LocationPreviewMap";
+import { CITIES, CITY_LABELS } from "@/lib/constants";
 
-const CITIES = ["Tel Aviv", "Jerusalem", "Haifa", "Beersheba"];
-const CITY_LABELS: Record<string, string> = {
-  "Tel Aviv": "תל אביב",
-  Jerusalem: "ירושלים",
-  Haifa: "חיפה",
-  Beersheba: "באר שבע",
-};
+const GENDERS = [
+  ["female", "נקבה"],
+  ["male", "זכר"],
+];
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -90,35 +88,80 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto bg-[var(--paper)] p-6 rounded-2xl border border-[var(--ink-border)]">
-      <h2 className="text-2xl mb-4">הצטרפות לקהילה</h2>
-      {error && <p className="text-[var(--rust)] mb-3">{error}</p>}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <input required placeholder="שם פרטי" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="border rounded-lg px-3 py-2" />
-        <input required placeholder="שם משפחה" value={lastName} onChange={(e) => setLastName(e.target.value)} className="border rounded-lg px-3 py-2" />
-        <input required placeholder="שם משתמש" value={userName} onChange={(e) => setUserName(e.target.value)} className="border rounded-lg px-3 py-2" />
-        <input required type="email" placeholder="אימייל" value={email} onChange={(e) => setEmail(e.target.value)} className="border rounded-lg px-3 py-2" />
-        <input required type="password" placeholder="סיסמה" value={password} onChange={(e) => setPassword(e.target.value)} className="border rounded-lg px-3 py-2" />
-        <input required type="number" placeholder="שנת לידה" value={birthYear} onChange={(e) => setBirthYear(e.target.value)} className="border rounded-lg px-3 py-2" />
-        <div className="flex gap-4">
-          <label><input type="radio" name="gender" checked={gender === "male"} onChange={() => setGender("male")} /> זכר</label>
-          <label><input type="radio" name="gender" checked={gender === "female"} onChange={() => setGender("female")} /> נקבה</label>
+    <div className="page split">
+      <div className="flex flex-col gap-3.5 pt-2">
+        <div className="eyebrow">הרשמה</div>
+        <h1 className="display text-[80px]">
+          הצטרפות <span className="text-rust">לקהילה</span>
+        </h1>
+        <p className="lede m-0">שיתוף מיקום הוא לא חובה. בלעדיו המרחק מחושב לפי העיר.</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="card form-card">
+        <i className="pin" />
+        {error && <p className="text-rust font-bold m-0">{error}</p>}
+        <div className="grid grid-cols-2 gap-3">
+          <label className="field">
+            שם פרטי
+            <input required value={firstName} onChange={(e) => setFirstName(e.target.value)} className="input" />
+          </label>
+          <label className="field">
+            שם משפחה
+            <input required value={lastName} onChange={(e) => setLastName(e.target.value)} className="input" />
+          </label>
         </div>
-        <select value={city} onChange={(e) => setCity(e.target.value)} className="border rounded-lg px-3 py-2">
-          {CITIES.map((c) => (
-            <option key={c} value={c}>{CITY_LABELS[c]}</option>
-          ))}
-        </select>
-        <input
-          placeholder="כתובת (רחוב, שכונה...) - לא חובה"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          className="border rounded-lg px-3 py-2"
-        />
-        <button type="button" onClick={shareLocation} className="border rounded-full px-4 py-2 text-[var(--green)]">
+        <label className="field">
+          שם משתמש
+          <input required value={userName} onChange={(e) => setUserName(e.target.value)} className="input" />
+        </label>
+        <label className="field">
+          אימייל
+          <input required type="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} className="input text-right" />
+        </label>
+        <label className="field">
+          סיסמה
+          <input required type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="input" />
+        </label>
+        <div className="grid grid-cols-2 gap-3 items-end">
+          <label className="field">
+            שנת לידה
+            <input required type="number" value={birthYear} onChange={(e) => setBirthYear(e.target.value)} className="input" />
+          </label>
+          <div className="flex gap-1.5" role="group" aria-label="מגדר">
+            {GENDERS.map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className="chip flex-1 justify-center text-[15px] py-2.5"
+                aria-pressed={gender === value}
+                onClick={() => setGender(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <label className="field">
+          עיר
+          <select value={city} onChange={(e) => setCity(e.target.value)} className="input">
+            {CITIES.map((c) => (
+              <option key={c} value={c}>{CITY_LABELS[c]}</option>
+            ))}
+          </select>
+        </label>
+        <label className="field">
+          כתובת
+          <input
+            placeholder="כתובת (רחוב, שכונה...) - לא חובה"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            className="input"
+          />
+        </label>
+        <button type="button" onClick={shareLocation} className="btn-outline">
           שיתוף מיקום לחישוב מרחק מדויק (לא חובה)
         </button>
-        {locationStatus && <p className="text-sm text-[var(--ink)]/70">{locationStatus}</p>}
+        {locationStatus && <p className="text-sm text-ink/70 m-0">{locationStatus}</p>}
         {location && <LocationPreviewMap lat={location.lat} lon={location.lon} />}
         <label className="flex items-center gap-2 text-sm">
           <input
@@ -126,11 +169,15 @@ export default function RegisterPage() {
             type="checkbox"
             checked={agreedToTerms}
             onChange={(e) => setAgreedToTerms(e.target.checked)}
+            className="w-[18px] h-[18px] accent-green"
           />
-          קראתי ואני מסכים/ה ל<Link href="/terms" target="_blank" className="text-[var(--green)] underline">תנאי השימוש</Link>
+          <span>
+            קראתי ואני מסכים/ה ל<Link href="/terms" target="_blank" className="underline font-bold">תנאי השימוש</Link>
+          </span>
         </label>
-        <button disabled={busy} type="submit" className="bg-[var(--green)] text-[var(--paper)] rounded-full px-4 py-2 mt-2">
-          {busy ? "נרשמת/ה..." : "הירשם"}
+        <button disabled={busy} type="submit" className="btn-primary mt-2">
+          <span>{busy ? "נרשמת/ה..." : "הירשם"}</span>
+          <span>←</span>
         </button>
       </form>
     </div>

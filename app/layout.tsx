@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Assistant, Frank_Ruhl_Libre } from "next/font/google";
+import { Amatic_SC, Assistant, Karantina } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { AuthProvider } from "@/lib/AuthContext";
@@ -11,10 +11,16 @@ const assistant = Assistant({
   subsets: ["hebrew", "latin"],
 });
 
-const frankRuhl = Frank_Ruhl_Libre({
-  variable: "--font-frank-ruhl",
+const karantina = Karantina({
+  variable: "--font-karantina",
   subsets: ["hebrew", "latin"],
-  weight: ["500", "700"],
+  weight: ["400", "700"],
+});
+
+const amatic = Amatic_SC({
+  variable: "--font-amatic",
+  subsets: ["hebrew", "latin"],
+  weight: ["700"],
 });
 
 export const metadata: Metadata = {
@@ -28,15 +34,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="he"
       dir="rtl"
-      className={`${assistant.variable} ${frankRuhl.variable} h-full antialiased`}
+      className={`${assistant.variable} ${karantina.variable} ${amatic.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[var(--bg)] text-[var(--ink)]">
+      <body className="min-h-full flex flex-col bg-sand text-ink">
         <HiddenMonogram />
         <AuthProvider>
           <Nav />
-          <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-6">{children}</main>
-          <footer className="text-center text-xs text-[var(--ink)]/50 py-4">
-            <Link href="/terms" className="underline">תנאי שימוש</Link>
+          <main className="flex-1 w-full">{children}</main>
+          <footer className="text-center text-xs text-ink/50 py-4">
+            <Link href="/terms" className="underline text-ink/50">תנאי שימוש</Link>
           </footer>
         </AuthProvider>
       </body>

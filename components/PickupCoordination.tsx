@@ -80,29 +80,30 @@ export default function PickupCoordination({ itemId, expiryDate, otherId }: { it
   const days = buildDayList(expiryDate);
 
   return (
-    <div className="mt-6 bg-[var(--paper)] p-4 rounded-2xl border border-[var(--ink-border)]">
-      <h3 className="text-xl mb-1">תיאום שעת איסוף</h3>
-      <p className="text-sm text-[var(--ink)]/70 mb-3">
+    <div className="card pt-[30px] px-5 pb-5 flex flex-col gap-2.5">
+      <i className="pin top-3 right-3.5" />
+      <h3 className="display-sm">תיאום שעת איסוף</h3>
+      <p className="text-sm text-ink/70 m-0 [text-wrap:pretty]">
         סמנו טווחי שעות נוחים לכם בימים שנותרו עד שהמוצר פג תוקף (עד 14 יום קדימה). כשלשניכם יש טווח באותו יום, החפיפה ביניכם תסומן.
       </p>
-      {error && <p className="text-[var(--rust)] mb-2 text-sm">{error}</p>}
+      {error && <p className="text-rust font-bold text-sm m-0">{error}</p>}
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col">
         {days.map((day) => {
           const mine = mySlots.filter((s) => s.slot_date === day.iso);
           const theirs = theirSlots.filter((s) => s.slot_date === day.iso);
           const draft = drafts[day.iso] ?? { start: "", end: "" };
 
           return (
-            <div key={day.iso} className="flex flex-wrap items-center gap-2 border-t border-[var(--ink-border)] pt-2 first:border-t-0 first:pt-0">
-              <div className="min-w-[90px] font-semibold text-sm">{day.label}</div>
+            <div key={day.iso} className="flex flex-wrap items-center gap-1.5 py-2.5 dashed-top">
+              <div className="min-w-[84px] font-bold text-[15px]">{day.label}</div>
 
               {mine.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => removeSlot(s.id)}
                   title="לחצו להסרה"
-                  className="bg-[var(--green-chip)] text-[var(--green)] rounded-full px-3 py-1 text-xs"
+                  className="bg-[var(--green-chip)] text-green rounded px-2.5 py-1 text-xs font-bold cursor-pointer"
                 >
                   {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)} ✕
                 </button>
@@ -112,17 +113,17 @@ export default function PickupCoordination({ itemId, expiryDate, otherId }: { it
                 const overlaps = mine.filter((s) => overlapRange(s, t) !== null);
                 if (overlaps.length > 0) {
                   return overlaps.map((s) => (
-                    <span key={`${t.id}-${s.id}`} className="bg-[var(--green)] text-[var(--paper)] rounded-full px-3 py-1 text-xs">
+                    <span key={`${t.id}-${s.id}`} className="bg-green text-paper border border-green rounded px-2.5 py-1 text-xs font-bold">
                       ✓ חפיפה {overlapRange(s, t)}
                     </span>
                   ));
                 }
                 return (
-                  <span key={t.id} className="border border-dashed border-[var(--rust)] text-[var(--rust)] rounded-full px-3 py-1 text-xs flex items-center gap-1">
+                  <span key={t.id} className="border border-dashed border-rust text-rust rounded px-2.5 py-1 text-xs font-bold flex items-center gap-1.5">
                     מוצע ע&quot;י הצד השני: {t.start_time.slice(0, 5)}–{t.end_time.slice(0, 5)}
                     <button
                       onClick={() => addSlot(day.iso, t.start_time.slice(0, 5), t.end_time.slice(0, 5))}
-                      className="bg-[var(--rust)] text-[var(--paper)] rounded-full px-2"
+                      className="bg-rust text-paper rounded px-2 py-px cursor-pointer"
                     >
                       גם אני פנוי/ה
                     </button>
@@ -133,19 +134,21 @@ export default function PickupCoordination({ itemId, expiryDate, otherId }: { it
               <div className="flex items-center gap-1 text-xs">
                 <input
                   type="time"
+                  aria-label="משעה"
                   value={draft.start}
                   onChange={(e) => setDrafts((d) => ({ ...d, [day.iso]: { ...draft, start: e.target.value } }))}
-                  className="border rounded px-1 py-0.5"
+                  className="border-[1.3px] border-[var(--ink-border)] rounded px-1 py-0.5 bg-white"
                 />
                 <input
                   type="time"
+                  aria-label="עד שעה"
                   value={draft.end}
                   onChange={(e) => setDrafts((d) => ({ ...d, [day.iso]: { ...draft, end: e.target.value } }))}
-                  className="border rounded px-1 py-0.5"
+                  className="border-[1.3px] border-[var(--ink-border)] rounded px-1 py-0.5 bg-white"
                 />
                 <button
                   onClick={() => addSlot(day.iso, draft.start, draft.end)}
-                  className="bg-[var(--paper)] border rounded-full px-2 py-0.5"
+                  className="border-[1.3px] border-[var(--ink-border)] rounded px-2.5 py-0.5 bg-paper font-semibold cursor-pointer"
                 >
                   הוסיפו טווח
                 </button>

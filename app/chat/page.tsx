@@ -7,6 +7,14 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
 import PickupCoordination from "@/components/PickupCoordination";
 
+const RATINGS = [
+  ["5", "מצוין"],
+  ["4", "טוב"],
+  ["3", "סביר"],
+  ["2", "לא טוב"],
+  ["1", "גרוע"],
+];
+
 type Message = {
   id: number;
   sender_id: string;
@@ -226,95 +234,121 @@ function ChatInner() {
   }
 
   return (
-    <div className="max-w-lg mx-auto">
-      <h2 className="text-2xl mb-1">
-        שיחה עם <Link href={`/profile/${otherId}`} className="underline">{otherUsername}</Link>
-      </h2>
-      {itemName && <p className="text-sm text-[var(--ink)]/70 mb-3">בנוגע למוצר: {itemName}</p>}
-
-      <div ref={historyRef} className="h-96 overflow-y-auto bg-[var(--bg)] border border-[var(--ink-border)] rounded-2xl p-4 flex flex-col gap-2">
-        {messages.map((m) => {
-          const mine = m.sender_id === userId;
-          return (
-            <div
-              key={m.id}
-              className={`max-w-[75%] px-4 py-2 rounded-2xl ${mine ? "self-end bg-[var(--green)] text-[var(--paper)]" : "self-start bg-[var(--paper)] border border-[var(--ink-border)]"} ${m.message_type === "address" ? "border-2 border-[var(--rust)]" : ""}`}
+    <div className="page pt-7 grid gap-7 items-start [grid-template-columns:repeat(auto-fit,minmax(320px,1fr))]">
+      <div className="flex flex-col gap-3.5 min-w-0">
+        <Link href="/messages" className="self-start text-sm font-bold no-underline">→ חזרה להודעות</Link>
+        <div className="flex flex-col gap-1">
+          <h1 className="display text-[56px]">
+            שיחה עם{" "}
+            <Link
+              href={`/profile/${otherId}`}
+              className="text-ink underline decoration-2 underline-offset-[6px]"
             >
-              {m.message_type === "address" && <div className="font-semibold">📍 כתובת לאיסוף:</div>}
-              {renderBody(m)}
-            </div>
-          );
-        })}
-      </div>
-
-      {canShareAddress && (
-        <div className="mt-2 text-center">
-          <button onClick={handleShareAddress} className="border rounded-full px-4 py-2 text-[var(--green)]">
-            📍 שלח/י כתובת מדויקת
-          </button>
-          <p className="text-xs text-[var(--ink)]/60 mt-1">
-            {itemPickupLocation
-              ? "בלחיצה תישלח לצד השני הכתובת שכתבת בפרסום המוצר."
-              : "בלחיצה יישלח לצד השני קישור למפה עם מיקום ה-GPS ששיתפת בפרסום המוצר."}
-          </p>
+              {otherUsername}
+            </Link>
+          </h1>
+          {itemName && (
+            <p className="lede m-0">
+              בנוגע למוצר: <b className="text-ink">{itemName}</b>
+            </p>
+          )}
         </div>
-      )}
 
-      <div className="flex gap-2 mt-3">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          placeholder="כתבו הודעה..."
-          className="flex-1 border rounded-full px-4 py-2"
-        />
-        <button onClick={handleSend} className="bg-[var(--green)] text-[var(--paper)] rounded-full px-5 py-2">
-          שליחה
-        </button>
-      </div>
-      {error && <p className="text-[var(--rust)] mt-2">{error}</p>}
+        <div ref={historyRef} className="h-[400px] overflow-y-auto bg-sand border-[1.3px] border-ink rounded p-4 flex flex-col gap-2">
+          {messages.map((m) => {
+            const mine = m.sender_id === userId;
+            const isAddress = m.message_type === "address";
+            return (
+              <div
+                key={m.id}
+                className={`max-w-[78%] px-3.5 py-2 rounded-[14px] text-[15px] [overflow-wrap:anywhere] ${mine ? "self-end bg-green text-paper" : "self-start bg-paper"} ${isAddress ? "border-2 border-rust" : mine ? "border border-green" : "border border-ink/35"} ${mine ? "[&_a]:text-paper" : ""}`}
+              >
+                {isAddress && <div className={`text-xs font-bold ${mine ? "text-paper" : "text-rust"}`}>כתובת לאיסוף:</div>}
+                {renderBody(m)}
+              </div>
+            );
+          })}
+        </div>
 
-      {canReview && !alreadyReviewed && (
-        <form onSubmit={handleSubmitReview} className="mt-6 bg-[var(--paper)] p-4 rounded-2xl border border-[var(--ink-border)]">
-          <h3 className="text-xl mb-2">איך היה המפגש?</h3>
-          {reviewMsg && <p className="text-[var(--green)] mb-2">{reviewMsg}</p>}
-          <label className="block mb-2">
-            דירוג:
-            <select value={rating} onChange={(e) => setRating(e.target.value)} className="border rounded-lg px-2 py-1 mr-2">
-              <option value="5">5 - מצוין</option>
-              <option value="4">4 - טוב</option>
-              <option value="3">3 - סביר</option>
-              <option value="2">2 - לא טוב</option>
-              <option value="1">1 - גרוע</option>
-            </select>
-          </label>
-          <textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="הערה (לא חובה)..."
-            className="w-full border rounded-lg px-3 py-2 mb-2"
+        {canShareAddress && (
+          <div className="flex flex-col items-center gap-1">
+            <button
+              onClick={handleShareAddress}
+              className="border border-rust rounded px-4 py-2 text-sm font-bold text-rust bg-paper cursor-pointer"
+            >
+              שלח/י כתובת מדויקת
+            </button>
+            <p className="text-xs text-ink/60 m-0 text-center">
+              {itemPickupLocation
+                ? "בלחיצה תישלח לצד השני הכתובת שכתבת בפרסום המוצר."
+                : "בלחיצה יישלח לצד השני קישור למפה עם מיקום ה-GPS ששיתפת בפרסום המוצר."}
+            </p>
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+            placeholder="כתבו הודעה..."
+            className="input flex-1 min-w-0 px-4"
           />
-          <button type="submit" className="bg-[var(--green)] text-[var(--paper)] rounded-full px-4 py-2">
-            שליחת ביקורת אנונימית
+          <button onClick={handleSend} className="btn-primary px-5">
+            שליחה
           </button>
-        </form>
-      )}
-      {alreadyReviewed && <p className="text-sm text-[var(--ink)]/70 mt-4">כבר השארתם ביקורת על המפגש הזה. תודה!</p>}
+        </div>
+        {error && <p className="text-rust font-bold m-0">{error}</p>}
+      </div>
 
-      {itemId && itemExpiryDate && (
-        <PickupCoordination itemId={itemId} expiryDate={itemExpiryDate} otherId={otherId} />
-      )}
+      <div className="flex flex-col gap-6 min-w-0">
+        {itemId && itemExpiryDate && (
+          <PickupCoordination itemId={itemId} expiryDate={itemExpiryDate} otherId={otherId} />
+        )}
 
-      <p className="mt-4">
-        <Link href="/messages" className="underline">חזרה להודעות</Link>
-      </p>
+        {canReview && !alreadyReviewed && (
+          <form onSubmit={handleSubmitReview} className="card p-5 flex flex-col gap-3">
+            <h3 className="display-sm">איך היה המפגש?</h3>
+            {reviewMsg && <p className="text-rust font-bold m-0">{reviewMsg}</p>}
+            <div className="flex gap-1.5 flex-wrap" role="group" aria-label="דירוג">
+              {RATINGS.map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  className="chip"
+                  aria-pressed={rating === value}
+                  onClick={() => setRating(value)}
+                >
+                  {value} - {label}
+                </button>
+              ))}
+            </div>
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="הערה (לא חובה)..."
+              rows={3}
+              className="input text-[15px] resize-y"
+            />
+            <button type="submit" className="btn-primary py-3">
+              <span>שליחת ביקורת אנונימית</span>
+              <span>←</span>
+            </button>
+          </form>
+        )}
+        {alreadyReviewed && (
+          <p className="font-bold text-[17px] text-green m-0">
+            {reviewMsg || "כבר השארתם ביקורת על המפגש הזה. תודה!"}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
 
 export default function ChatPage() {
   return (
-    <Suspense fallback={<p>טוען...</p>}>
+    <Suspense fallback={<p className="page">טוען...</p>}>
       <ChatInner />
     </Suspense>
   );
